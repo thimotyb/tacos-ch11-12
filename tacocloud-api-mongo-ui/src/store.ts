@@ -125,7 +125,6 @@ const connectIngredientStream = () => {
       setTimeout(connectIngredientStream, 5000);
     }
   });
-  return subscription;
 };
 
 const connectTacoStream = () => {
@@ -140,7 +139,6 @@ const connectTacoStream = () => {
       setTimeout(connectTacoStream, 5000);
     }
   });
-  return subscription;
 };
 
 const connectOrderStream = () => {
@@ -155,7 +153,6 @@ const connectOrderStream = () => {
       setTimeout(connectOrderStream, 5000);
     }
   });
-  return subscription;
 };
 
 connectIngredientStream();
