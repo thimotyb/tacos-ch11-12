@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.Date;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tacos.Order;
+import tacos.api.events.DomainEventPublisher;
 import tacos.data.OrderRepository;
 
 @RestController
@@ -29,14 +31,22 @@ import tacos.data.OrderRepository;
 public class OrderApiController {
 
   private final OrderRepository orderRepository;
+  private final DomainEventPublisher eventPublisher;
 
-  public OrderApiController(OrderRepository orderRepository) {
+  public OrderApiController(OrderRepository orderRepository,
+      DomainEventPublisher eventPublisher) {
     this.orderRepository = orderRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   @GetMapping
   public Flux<Order> allOrders() {
     return orderRepository.findAll();
+  }
+
+  @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public Flux<Order> orderStream() {
+    return Flux.concat(orderRepository.findAll(), eventPublisher.orderStream());
   }
 
   @PostMapping
@@ -48,6 +58,7 @@ public class OrderApiController {
           return order;
         })
         .flatMap(orderRepository::save)
+        .doOnNext(eventPublisher::publishOrder)
         .map(saved -> ResponseEntity
             .created(URI.create("/api/orders/" + saved.getId()))
             .body(saved));
@@ -73,6 +84,7 @@ public class OrderApiController {
           return order;
         })
         .flatMap(orderRepository::save)
+        .doOnNext(eventPublisher::publishOrder)
         .map(ResponseEntity::ok);
   }
 
@@ -83,6 +95,7 @@ public class OrderApiController {
         .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
         .flatMap(existing -> patchMono.map(patch -> applyPatch(existing, patch)))
         .flatMap(orderRepository::save)
+        .doOnNext(eventPublisher::publishOrder)
         .map(ResponseEntity::ok);
   }
 

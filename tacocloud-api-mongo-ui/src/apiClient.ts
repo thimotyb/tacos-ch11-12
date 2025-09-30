@@ -1,5 +1,5 @@
 import { ajax } from 'rxjs/ajax';
-import { map } from 'rxjs/operators';
+import { map, share } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
@@ -35,6 +35,26 @@ export interface Order {
 
 const headers = { 'Content-Type': 'application/json' };
 
+const eventSource$ = <T>(path: string): Observable<T> =>
+  new Observable<T>(subscriber => {
+    const source = new EventSource(path);
+
+    source.onmessage = event => {
+      try {
+        subscriber.next(JSON.parse(event.data) as T);
+      } catch (error) {
+        subscriber.error(error);
+      }
+    };
+
+    source.onerror = error => {
+      subscriber.error(error);
+      source.close();
+    };
+
+    return () => source.close();
+  }).pipe(share({ resetOnRefCountZero: true }));
+
 export const getIngredients = (): Observable<Ingredient[]> =>
   ajax.getJSON<Ingredient[]>(withBase('/ingredients'));
 
@@ -52,3 +72,12 @@ export const getOrders = (): Observable<Order[]> =>
 
 export const createOrder = (order: Order): Observable<Order> =>
   ajax.post(withBase('/orders'), order, headers).pipe(map(resp => resp.response as Order));
+
+export const streamIngredients = (): Observable<Ingredient> =>
+  eventSource$<Ingredient>(withBase('/ingredients/stream'));
+
+export const streamTacos = (): Observable<Taco> =>
+  eventSource$<Taco>(withBase('/design/stream'));
+
+export const streamOrders = (): Observable<Order> =>
+  eventSource$<Order>(withBase('/orders/stream'));

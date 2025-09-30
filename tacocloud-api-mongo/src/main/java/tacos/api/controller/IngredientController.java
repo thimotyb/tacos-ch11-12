@@ -3,6 +3,7 @@ package tacos.api.controller;
 import java.net.URI;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,7 +18,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import tacos.Ingredient;
+import tacos.api.events.DomainEventPublisher;
 import tacos.data.IngredientRepository;
 
 @RestController
@@ -26,14 +29,22 @@ import tacos.data.IngredientRepository;
 public class IngredientController {
 
   private final IngredientRepository ingredientRepository;
+  private final DomainEventPublisher eventPublisher;
 
-  public IngredientController(IngredientRepository ingredientRepository) {
+  public IngredientController(IngredientRepository ingredientRepository,
+      DomainEventPublisher eventPublisher) {
     this.ingredientRepository = ingredientRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   @GetMapping
   public Flux<Ingredient> allIngredients() {
     return ingredientRepository.findAll();
+  }
+
+  @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public Flux<Ingredient> ingredientStream() {
+    return Flux.concat(ingredientRepository.findAll(), eventPublisher.ingredientStream());
   }
 
   @GetMapping("/{id}")
@@ -47,6 +58,7 @@ public class IngredientController {
   public Mono<ResponseEntity<Ingredient>> createIngredient(@RequestBody Mono<Ingredient> ingredientMono) {
     return ingredientMono
         .flatMap(ingredientRepository::save)
+        .doOnNext(eventPublisher::publishIngredient)
         .map(saved -> ResponseEntity
             .created(URI.create("/api/ingredients/" + saved.getId()))
             .body(saved));
@@ -63,6 +75,7 @@ public class IngredientController {
           return incoming;
         })
         .flatMap(ingredientRepository::save)
+        .doOnNext(eventPublisher::publishIngredient)
         .map(ResponseEntity::ok);
   }
 

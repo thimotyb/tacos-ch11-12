@@ -3,6 +3,7 @@ package tacos.api.controller;
 import java.net.URI;
 import java.util.Date;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tacos.Taco;
+import tacos.api.events.DomainEventPublisher;
 import tacos.data.TacoRepository;
 
 @RestController
@@ -23,14 +25,21 @@ import tacos.data.TacoRepository;
 public class DesignTacoController {
 
   private final TacoRepository tacoRepository;
+  private final DomainEventPublisher eventPublisher;
 
-  public DesignTacoController(TacoRepository tacoRepository) {
+  public DesignTacoController(TacoRepository tacoRepository, DomainEventPublisher eventPublisher) {
     this.tacoRepository = tacoRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   @GetMapping("/recent")
   public Flux<Taco> recentTacos() {
     return tacoRepository.findAll().take(12);
+  }
+
+  @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public Flux<Taco> tacoStream() {
+    return Flux.concat(tacoRepository.findAll(), eventPublisher.tacoStream());
   }
 
   @GetMapping("/{id}")
@@ -48,6 +57,7 @@ public class DesignTacoController {
           return taco;
         })
         .flatMap(tacoRepository::save)
+        .doOnNext(eventPublisher::publishTaco)
         .map(saved -> ResponseEntity
             .created(URI.create("/api/design/" + saved.getId()))
             .body(saved));
