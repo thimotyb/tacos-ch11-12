@@ -11,7 +11,17 @@ and reactive MongoDB repositories.
 
 ## Getting Started
 
-1. **Start MongoDB and the Mongo Express UI**
+1. **Start everything via the root docker compose (MongoDB, API, UI)**
+
+   ```bash
+   cd ..
+   docker compose -f docker-compose-total.yml up -d --build
+   ```
+
+   This launches the database, the API, Mongo Express at `http://localhost:8081`,
+   and the React UI at `http://localhost:5173`.
+
+2. **Start MongoDB and Mongo Express only (module scope)**
 
    ```bash
    cd tacocloud-api-mongo
@@ -25,7 +35,7 @@ and reactive MongoDB repositories.
    Authenticate to Mongo Express with `admin / admin`, then browse collections,
    create documents, or run ad-hoc queries visually.
 
-2. **Run the API**
+3. **Run the API**
 
    ```bash
    mvn spring-boot:run
@@ -33,7 +43,7 @@ and reactive MongoDB repositories.
 
    The application listens on `http://localhost:8080`.
 
-3. **Optional: Run the Reactive React UI**
+4. **Optional: Run the Reactive React UI**
 
    A lightweight Vite + React console lives in `../tacocloud-api-mongo-ui` and
    consumes the same APIs through RxJS observables.
@@ -51,7 +61,7 @@ and reactive MongoDB repositories.
    - Design tacos from existing ingredients
    - Compose orders from recent taco designs
 
-4. **Test Endpoints Directly**
+5. **Test Endpoints Directly**
 
    - List ingredients: `GET http://localhost:8080/api/ingredients`
    - Create a taco design: `POST http://localhost:8080/api/design`

@@ -2,6 +2,10 @@ import { ajax } from 'rxjs/ajax';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+
+const withBase = (path: string) => `${API_BASE_URL}${path}`;
+
 export interface Ingredient {
   id?: string;
   name: string;
@@ -32,19 +36,19 @@ export interface Order {
 const headers = { 'Content-Type': 'application/json' };
 
 export const getIngredients = (): Observable<Ingredient[]> =>
-  ajax.getJSON<Ingredient[]>('/api/ingredients');
+  ajax.getJSON<Ingredient[]>(withBase('/ingredients'));
 
 export const createIngredient = (ingredient: Ingredient): Observable<Ingredient> =>
-  ajax.post('/api/ingredients', ingredient, headers).pipe(map(resp => resp.response as Ingredient));
+  ajax.post(withBase('/ingredients'), ingredient, headers).pipe(map(resp => resp.response as Ingredient));
 
 export const getRecentTacos = (): Observable<Taco[]> =>
-  ajax.getJSON<Taco[]>('/api/design/recent');
+  ajax.getJSON<Taco[]>(withBase('/design/recent'));
 
 export const createTaco = (taco: Taco): Observable<Taco> =>
-  ajax.post('/api/design', taco, headers).pipe(map(resp => resp.response as Taco));
+  ajax.post(withBase('/design'), taco, headers).pipe(map(resp => resp.response as Taco));
 
 export const getOrders = (): Observable<Order[]> =>
-  ajax.getJSON<Order[]>('/api/orders');
+  ajax.getJSON<Order[]>(withBase('/orders'));
 
 export const createOrder = (order: Order): Observable<Order> =>
-  ajax.post('/api/orders', order, headers).pipe(map(resp => resp.response as Order));
+  ajax.post(withBase('/orders'), order, headers).pipe(map(resp => resp.response as Order));

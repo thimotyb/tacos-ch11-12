@@ -1,0 +1,55 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: tacocloud-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: tacocloud
+    volumes:
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express:1.0.2-20-alpine3.19
+    container_name: tacocloud-mongo-express
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/tacocloud
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - "8081:8081"
+
+  backend:
+    build:
+      context: ./tacocloud-api-mongo
+      dockerfile: Dockerfile
+    container_name: tacocloud-api
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/tacocloud
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./tacocloud-api-mongo-ui
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8080/api
+    container_name: tacocloud-ui
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  mongo-data:

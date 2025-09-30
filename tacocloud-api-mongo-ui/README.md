@@ -18,6 +18,10 @@ npm run dev
 The dev server starts at `http://localhost:5173` with a proxy that forwards `/api`
 requests to the backend.
 
+For production builds, set `VITE_API_BASE_URL` to the backend endpoint (defaults
+to `/api`). The root `docker-compose-total.yml` handles this automatically when
+building the container image.
+
 ## Features
 
 - Live ingredient list with the ability to add new ingredients

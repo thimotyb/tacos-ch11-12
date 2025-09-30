@@ -18,14 +18,25 @@ service and complements it with a lightweight reactive web console.
 
 ## How to Run
 
-1. Start the infrastructure and backend service:
+1. Start everything with Docker (MongoDB, API, UI):
+   ```bash
+   docker compose -f docker-compose-total.yml up -d --build
+   ```
+
+   Access points:
+   - API: `http://localhost:8080`
+   - Mongo Express: `http://localhost:8081`
+   - React UI: `http://localhost:5173`
+
+   For iterative development you can run services separately:
    ```bash
    cd tacocloud-api-mongo
    docker compose up -d
    mvn spring-boot:run
    ```
 
-2. Launch the reactive UI in a separate terminal:
+2. Launch the reactive UI manually (only needed when the UI is not started via
+   Docker):
    ```bash
    cd tacocloud-api-mongo-ui
    npm install
