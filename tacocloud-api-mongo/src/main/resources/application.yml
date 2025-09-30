@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/tacocloud
+  main:
+    keep-alive: true
+    web-application-type: reactive
+server:
+  port: 8080
