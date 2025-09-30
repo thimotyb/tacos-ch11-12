@@ -7,19 +7,23 @@ and reactive MongoDB repositories.
 
 - Java 17+
 - Maven 3.9+
-- Docker (for the bundled MongoDB compose setup)
+- Docker (for the bundled MongoDB and Mongo Express services)
 
 ## Getting Started
 
-1. **Start MongoDB**
+1. **Start MongoDB and the Mongo Express UI**
 
    ```bash
    cd tacocloud-api-mongo
    docker compose up -d
    ```
 
-   The container exposes MongoDB on `localhost:27017` and creates the
-   `tacocloud` database with a persistent volume.
+   This launches:
+   - MongoDB at `mongodb://localhost:27017/tacocloud`
+   - Mongo Express (web UI) at `http://localhost:8081`
+
+   Authenticate to Mongo Express with `admin / admin`, then browse collections,
+   create documents, or run ad-hoc queries visually.
 
 2. **Run the API**
 
@@ -29,7 +33,25 @@ and reactive MongoDB repositories.
 
    The application listens on `http://localhost:8080`.
 
-3. **Test Endpoints**
+3. **Optional: Run the Reactive React UI**
+
+   A lightweight Vite + React console lives in `../tacocloud-api-mongo-ui` and
+   consumes the same APIs through RxJS observables.
+
+   ```bash
+   cd ../tacocloud-api-mongo-ui
+   npm install
+   npm run dev
+   ```
+
+   The development server starts on `http://localhost:5173` and proxies `/api`
+   calls to the Spring Boot backend. The UI lets you:
+
+   - Create and list ingredients
+   - Design tacos from existing ingredients
+   - Compose orders from recent taco designs
+
+4. **Test Endpoints Directly**
 
    - List ingredients: `GET http://localhost:8080/api/ingredients`
    - Create a taco design: `POST http://localhost:8080/api/design`
@@ -41,7 +63,7 @@ and reactive MongoDB repositories.
 - `src/main/java/tacos`: Mongo domain model without Lombok.
 - `src/main/java/tacos/data`: Reactive repositories.
 - `src/main/java/tacos/api/controller`: WebFlux REST controllers.
-- `docker-compose.yml`: Local MongoDB runtime.
+- `docker-compose.yml`: Local MongoDB + Mongo Express services.
 - `REFACTOR.md`: Notes about the extraction from the legacy codebase.
 
 ## Stopping Services
