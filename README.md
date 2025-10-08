@@ -25,7 +25,7 @@ service and complements it with a lightweight reactive web console.
 
    Access points:
    - API: `http://localhost:8080`
-   - Mongo Express: `http://localhost:8081`
+   - Mongo Express: `http://localhost:8081` (admin/admin)
    - React UI: `http://localhost:5173`
 
    For iterative development you can run services separately:
@@ -43,7 +43,7 @@ service and complements it with a lightweight reactive web console.
    npm run dev
    ```
 
-3. Interact with the app at `http://localhost:5173` or use Mongo Express at
+3. Interact with the app at `http://localhost:5173` or use Mongo Express (admin/admin) at
    `http://localhost:8081` to explore database changes.
 
 This README serves as a quick tour of the branch for reviewers and teammates.
